@@ -1,0 +1,50 @@
+plays:
+  - name: 安装model-dp
+    hosts: app
+    tasks:
+      - name: 创建app目录
+        tags: app
+        shell: |
+          sudo mkdir -p "{{.app.home}}"
+          sudo chown -R app:app "{{.app.home}}"    
+      - name: 创建日志目录
+        tags: log
+        shell: |
+          sudo mkdir -p "{{.log.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 更新model-dp
+        tags: model-dp
+        upload:
+          src: app/model-dp
+          dest: "{{.app.home}}/model-dp"
+      - name: 更新model-dp配置文件
+        tags:
+          - model-dp
+          - conf
+        template:
+          src: app/model-dp/bootstrap.yml
+          dest: "{{.app.home}}/model-dp/bootstrap.yml"          
+      - name: 上传model-dp服务脚本
+        tags:
+          - model-dp
+          - service
+        template:
+          src: service/model-dp.service
+          dest: /etc/systemd/system/model-dp.service
+      - name: 修改目录权限
+        tags: auth
+        shell: |
+          sudo chown -R app:app "{{.app.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 重启service
+        tags: service
+        shell: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable model-dp
+          sudo systemctl restart model-dp
+          sudo firewall-cmd --permanent --add-port="{{.model_dp.port}}"/tcp --zone=public
+      - name: 重启model-dp
+        tags:
+          - model-dp
+          - service
+        shell: sudo systemctl restart model-dp

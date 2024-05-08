@@ -1,0 +1,15 @@
+[Unit]
+Description=model-job-PvCombinerBox server
+#Documentation=none
+After=network.target
+
+[Service]
+Environment="SERVER_HOME={{.app.home}}/model-job-PvCombinerBox"
+ExecStart=/usr/local/bin/java -jar ${SERVER_HOME}/model-job-PvCombinerBox.jar --spring.config.location=file:${SERVER_HOME}/application.yml
+ExecStop=/bin/kill -9 $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=model-job-PvCombinerBox.service
+

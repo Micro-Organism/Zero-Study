@@ -1,0 +1,32 @@
+plays:
+  - name: 安装emqx
+    hosts: app
+    tasks:
+      - name: 创建soft目录
+        tags: 
+          - soft
+          - home
+        shell: |
+          sudo mkdir -p "{{.soft.home}}"
+          sudo chown -R app:app "{{.soft.home}}"
+      - name: 上传emqx安装文件
+        tags: emqx
+        upload:
+          src: soft/emqx-centos7-4.3.5-amd64.rpm
+          dest: "{{.soft.home}}/"
+      - name: 安装emqx
+        tags:
+          - emqx
+          - profile
+        shell: |
+          sudo rpm -ivh "{{.soft.home}}"/emqx-centos7-4.3.5-amd64.rpm  --replacepkgs
+      - name: emqx
+        tags:
+          - emqx
+          - service
+        shell: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable emqx
+          sudo systemctl start emqx
+          sudo firewall-cmd --permanent --add-port=18083/tcp --zone=public
+          sudo firewall-cmd --reload              

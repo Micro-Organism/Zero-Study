@@ -1,0 +1,17 @@
+[Unit]
+Description=nacos server
+After=network.target
+
+[Service]
+User=app
+Group=app
+Type=forking
+Environment="NACOS_HOME={{.app.home}}/nacos"
+ExecStart=/bin/sh ${NACOS_HOME}/bin/startup.sh -m standalone
+ExecStop=/bin/sh ${NACOS_HOME}/bin/shutdown.sh
+ExecReload=/bin/sh ${NACOS_HOME}/bin/shutdown.sh
+PrivateTmp=true
+
+[Install]
+Alias=nacos.service
+WantedBy=multi-user.target

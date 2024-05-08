@@ -1,0 +1,45 @@
+plays:
+  - name: 安装ms-auth
+    hosts: app
+    tasks:
+      - name: 创建app目录
+        tags: app
+        shell: |
+          sudo mkdir -p "{{.app.home}}"
+          sudo chown -R app:app "{{.app.home}}"    
+      - name: 创建日志目录
+        tags: log
+        shell: |
+          sudo mkdir -p "{{.log.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 更新ms-auth
+        tags: ms-auth
+        upload:
+          src: app/ms-auth
+          dest: "{{.app.home}}/ms-auth"
+      - name: 更新ms-auth配置文件
+        tags:
+          - ms-auth
+          - conf
+        template:
+          src: app/ms-auth/bootstrap.yml
+          dest: "{{.app.home}}/ms-auth/bootstrap.yml"          
+      - name: 上传ms-auth服务脚本
+        tags:
+          - ms-auth
+          - service
+        template:
+          src: service/ms-auth.service
+          dest: /etc/systemd/system/ms-auth.service
+      - name: 修改目录权限
+        tags: auth
+        shell: |
+          sudo chown -R app:app "{{.app.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 重启service
+        tags: service
+        shell: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable ms-auth
+          sudo systemctl restart ms-auth
+          sudo firewall-cmd --permanent --add-port="{{.ms_auth.port}}"/tcp --zone=public

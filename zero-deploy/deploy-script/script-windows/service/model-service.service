@@ -1,0 +1,15 @@
+[Unit]
+Description=model-service server
+#Documentation=none
+After=network.target
+
+[Service]
+Environment="SERVER_HOME={{.app.home}}/model-service"
+ExecStart=/usr/local/bin/java -jar ${SERVER_HOME}/model-service.jar --spring.config.location=file:${SERVER_HOME}/bootstrap.yml
+ExecStop=/bin/kill -9 $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

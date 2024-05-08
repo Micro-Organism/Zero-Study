@@ -1,0 +1,94 @@
+# nginx 地址
+nginx:
+  host: http://192.168.1.3
+  #   nginx的对外地址
+  www: http://192.168.1.3
+
+# redis数据库地址
+redis:
+  host: 127.0.0.1
+  port: 6379
+  passwd: sf@123456
+  database: 0
+# postgresql 数据库地址
+pgsql:
+  host: 127.0.0.1
+  user: smartsys
+  passwd: sf_zhjkb
+  port: 5432
+
+# influxdb 数据库地址
+influxdb:
+  url: http://127.0.0.1:8086
+  user: admin
+  passwd: sf@123456
+  bucket: sf-bucket
+  token: abcde
+
+# mqtt服务器地址
+mqtt:
+  host: tcp://127.0.0.1:1883
+  user: admin
+  passwd: public
+  clientId: mqtt2kafka
+
+kafka:
+  host: 127.0.0.1
+  port: 9092
+  bootstrap_servers: 127.0.0.1:9092
+
+# 各应用服务地址
+nacos:
+  host: 127.0.0.1
+  port: 8848
+elastic_job_lite:
+  host: 127.0.0.1
+  port: 8899
+sentinel:
+  host: 127.0.0.1
+  port: 8050
+ms_gateway:
+  host: 127.0.0.1
+  port: 38080
+ms_system:
+  host: 127.0.0.1
+  port: 9009
+ms_auth:
+  host: 127.0.0.1
+  port: 9002
+model_service:
+  host: 127.0.0.1
+  port: 9003
+model_dp:
+  host: 127.0.0.1
+  port: 9100
+model_fep:
+  host: 127.0.0.1
+  port: 9101
+business_energy:
+  host: 127.0.0.1
+  port: 10001
+business_psis:
+  host: 127.0.0.1
+  port: 11001
+
+# 日志文件路径
+log:
+  home: /opt/log
+
+# 数据目录
+data:
+  home: /opt/data
+
+# 应用安装目录
+app:
+  home: /opt/app
+
+# 软件安装目录
+soft:
+  home: /opt/soft
+
+# 服务脚本目录
+service:
+  home: /opt/service
+

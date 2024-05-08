@@ -1,0 +1,52 @@
+plays:
+  - name: 安装Influxdb数据库
+    hosts: db
+    tasks:
+      - name: 创建soft目录
+        tags: 
+          - soft
+          - home
+        shell: |
+          sudo mkdir -p "{{.soft.home}}"
+          sudo chown app:app "{{.soft.home}}" 
+      - name: 创建数据库数据目录
+        tags: 
+          - db
+          - data
+        shell: |
+          sudo mkdir -p "{{.data.home}}"
+          sudo chown app:app "{{.data.home}}"
+      - name: 上传influxdb安装文件
+        tags: influxdb
+        upload:
+          src: soft/influxdb2-2.2.0.x86_64.rpm
+          dest: "{{.soft.home}}"
+      - name: 安装influxdb
+        tags: influxdb
+        shell: |
+            sudo rpm -ivh "{{.soft.home}}"/influxdb2-2.2.0.x86_64.rpm  --replacepkgs
+      - name: 上传influxdb-cli安装文件
+        tags: influxdb
+        upload:
+          src: soft/influxdb2-client-2.2.1-linux-amd64.tar.gz
+          dest: "{{.soft.home}}"
+      - name: 安装influxdb-cli
+        tags: influxdb
+        shell: |
+          cd "{{.soft.home}}"
+          sudo tar xzf influxdb2-client-2.2.1-linux-amd64.tar.gz
+          sudo cp influxdb2-client-2.2.1-linux-amd64/influx /usr/local/bin/
+      - name: 配置influxdb
+        tags:
+          - influxdb
+          - conf
+        shell: |
+            sed -i 's#bolt-path = "/var/lib/influxdb/influxd.bolt"#bolt-path = "{{.data.home}}/influxdb/influxd.bolt"#g' /etc/influxdb/config.toml
+            sed -i 's#engine-path = "/var/lib/influxdb/engine"#engine-path = "{{.data.home}}/influxdb/engine"#g' /etc/influxdb/influxdb.conf
+            sudo mkdir -p {{.data.home}}/influxdb/data
+            sudo chown -R influxdb:influxdb {{.data.home}}/influxdb
+            sudo systemctl daemon-reload
+            sudo systemctl enable influxdb
+            sudo systemctl start influxdb
+            sudo firewall-cmd --permanent --add-port=8086/tcp --zone=public
+            sudo firewall-cmd --reload

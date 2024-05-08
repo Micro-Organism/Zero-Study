@@ -1,0 +1,14 @@
+[Unit]
+Description=model-fep server
+#Documentation=none
+After=network.target
+
+[Service]
+Environment="SERVER_HOME={{.app.home}}/model-fep"
+ExecStart=/usr/local/bin/java -jar ${SERVER_HOME}/model-fep.jar --spring.config.location=file:${SERVER_HOME}/application.yml
+ExecStop=/bin/kill -9 $MAINPID
+Restart=on-failure
+
+[Install]
+Alias=model-fep.service
+WantedBy=multi-user.target

@@ -1,0 +1,15 @@
+[Unit]
+Description=kafka server
+After=network.target zookeeper.service
+
+[Service]
+Type=forking
+Environment="SERVER_HOME={{.soft.home}}/kafka_2.13-3.0.0"
+ExecStart=/bin/sh ${SERVER_HOME}/bin/kafka-server-start.sh  -daemon ${SERVER_HOME}/config/server.properties
+ExecStop=/bin/sh ${SERVER_HOME}/bin/kafka-server-stop.sh
+ExecReload=/bin/sh ${SERVER_HOME}/bin/kafka-server-stop.sh
+PrivateTmp=true
+
+[Install]
+Alias=kafka.service
+WantedBy=multi-user.target

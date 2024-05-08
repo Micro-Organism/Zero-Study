@@ -1,0 +1,13 @@
+[Unit]
+Description=business-energy server
+After=network.target
+
+[Service]
+Environment="APP_HOME={{.app.home}}/business-energy"
+ExecStart=/usr/local/bin/java -jar ${APP_HOME}/business-energy.jar --spring.config.location=file:${APP_HOME}/bootstrap.yml
+ExecStop=/bin/kill -9 $MAINPID
+Restart=on-failure
+
+[Install]
+Alias=energy.service
+WantedBy=multi-user.target

@@ -1,0 +1,15 @@
+[Unit]
+Description=model-job-PvArea server
+#Documentation=none
+After=network.target
+
+[Service]
+Environment="SERVER_HOME={{.app.home}}/model-job-PvArea"
+ExecStart=/usr/local/bin/java -jar ${SERVER_HOME}/model-job-PvArea.jar --spring.config.location=file:${SERVER_HOME}/application.yml
+ExecStop=/bin/kill -9 $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=model-job-PvArea.service
+

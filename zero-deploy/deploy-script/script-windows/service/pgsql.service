@@ -1,0 +1,19 @@
+[Unit]
+Description=PostgreSQL database server
+Documentation=man:postgres(1)
+
+[Service]
+Type=forking
+User=postgres
+Group=postgres
+
+Environment=PGDATA={{.data.home}}/pgdata
+
+ExecStart=/usr/local/pgsql/bin/pg_ctl -D ${PGDATA} start
+ExecStop=/usr/local/pgsql/bin/pg_ctl -D ${PGDATA} stop -m fast
+ExecReload=/usr/local/pgsql/bin/pg_ctl -D ${PGDATA} reload
+TimeoutSec=300
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

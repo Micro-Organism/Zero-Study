@@ -1,0 +1,19 @@
+plays:
+  - name: 安装web
+    hosts: app
+    tasks:
+      - name: 创建web目录
+        tags: app
+        shell: |
+          sudo mkdir -p "{{.app.home}}"/web
+          sudo chown -R app:app "{{.app.home}}"/web    
+      - name: 更新neom-web
+        tags: neom-web
+        upload:
+          src: app/web/neom
+          dest: "{{.app.home}}/web/neom/dist"
+      - name: 更新psis-web
+        tags: psis-web
+        upload:
+          src: app/web/psis
+          dest: "{{.app.home}}/web/psis/dist"

@@ -1,0 +1,15 @@
+[Unit]
+Description=model-job-CentralStation server
+#Documentation=none
+After=network.target
+
+[Service]
+Environment="SERVER_HOME={{.app.home}}/model-job-CentralStation"
+ExecStart=/usr/local/bin/java -jar ${SERVER_HOME}/model-job-CentralStation.jar --spring.config.location=file:${SERVER_HOME}/application.yml
+ExecStop=/bin/kill -9 $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=model-job-CentralStation.service
+

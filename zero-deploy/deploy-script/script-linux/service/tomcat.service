@@ -1,0 +1,20 @@
+[Unit]
+Description=Apache Tomcat Web Application Container
+#Documentation=none
+After=syslog. target network.target
+Wants=network-online.target
+
+[Service]
+User=tomcat8
+Group=tomcat8
+Type=forking
+Environment=CATALINA_PID=/opt/soft/tomcat10/temp/tomcat.pid
+Environment=CATALINA_HOME=/opt/soft/tomcat10
+Environment=CATALINA_BASE=/opt/soft/tomcat10
+ExecStart=/opt/soft/tomcat/bin/startup.sh
+ExecStop=/opt/soft//tomcat/bin/shutdown.sh
+Restart=on-failure
+
+[Installl]
+Alias=tomcat.service
+WantedBy=multi-user.target

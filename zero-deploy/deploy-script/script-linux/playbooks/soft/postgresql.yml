@@ -1,0 +1,87 @@
+plays:
+  - name: 安装Postgresql数据库
+    hosts: db
+    tasks:
+      - name: 创建soft目录
+        tags: 
+          - soft
+          - home
+        shell: |
+          sudo mkdir -p "{{.soft.home}}"
+          sudo chown app:app "{{.soft.home}}"
+      - name: 创建数据库数据目录
+        tags: 
+          - db
+          - data
+        shell: |
+          sudo mkdir -p "{{.data.home}}"
+          sudo chown app:app "{{.data.home}}"
+      - name: 上传postgresql文件
+        tags:
+          - pgsql
+          - upload
+        upload:
+          src: soft/postgresql-10.6.tar.gz
+          dest: "{{.soft.home}}"
+      - name: configure postgresql
+        tags:
+          - pgsql
+          - make
+        shell: |
+            cd "{{.soft.home}}"
+            sudo tar -xvf postgresql-10.6.tar.gz
+            cd {{.soft.home}}/postgresql-10.6
+            sudo ./configure --without-readline --without-zlib
+      - name: make postgresql
+        tags:
+          - pgsql
+          - make
+        shell: |
+            cd {{.soft.home}}/postgresql-10.6
+            sudo make
+      - name: make install postgresql
+        tags:
+          - pgsql
+          - make
+        shell: |
+            cd "{{.soft.home}}"/postgresql-10.6
+            make install
+      - name: 创建postgres用户
+        tags:
+          - pgsql
+          - user
+        shell: |
+            sudo groupadd postgres
+            sudo useradd -g postgres -d /home/postgres postgres
+      - name: 初始化数据库
+        tags:
+          - pgsql
+          - initdb
+        shell: |
+            sudo mkdir -p {{.data.home}}/pgdata
+            sudo chown -R postgres:postgres {{.data.home}}/pgdata
+            su - postgres -c "/usr/local/pgsql/bin/initdb -D {{.data.home}}/pgdata"
+      - name: 上传postgresql的service文件
+        tags:
+          - pgsql
+          - conf
+          - service
+        template:
+          src: service/pgsql.service
+          dest: /etc/systemd/system/pgsql.service
+      - name: 配置postgresql
+        tags:
+          - pgsql
+          - conf
+        shell: |
+            sudo systemctl daemon-reload
+            sudo systemctl enable pgsql
+            sudo systemctl start pgsql
+            sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" {{.data.home}}/pgdata/postgresql.conf
+            sed -i "s/max_connections = 100/max_connections = 1000/g" {{.data.home}}/pgdata/postgresql.conf
+            sed -i '86 a host    all    all    0.0.0.0/0    md5' {{.data.home}}/pgdata/pg_hba.conf
+            /usr/local/pgsql/bin/psql -U postgres -c "alter user postgres with password '{{.pgsql.passwd}}';"
+            sudo systemctl stop pgsql
+            sudo systemctl start pgsql
+            sudo firewall-cmd --permanent --add-port=5432/tcp --zone=public
+            sudo firewall-cmd --reload    

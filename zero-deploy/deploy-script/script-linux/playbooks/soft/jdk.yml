@@ -1,0 +1,27 @@
+plays:
+  - name: 安装JDK
+    hosts: app
+    tasks:
+      - name: 创建soft目录
+        tags: jdk
+        file: 
+          path: "{{.soft.home}}"
+          state: directory
+      - name: 上传jdk安装文件
+        tags: jdk
+        upload:
+          src: soft/jdk-8u301-linux-x64.tar.gz
+          dest: /tmp/
+      - name: 安装jdk
+        tags:
+          - jdk
+          - profile
+        shell: |
+            cp /tmp/jdk-8u301-linux-x64.tar.gz "{{.soft.home}}"/jdk-8u301-linux-x64.tar.gz
+            cd "{{.soft.home}}"
+            tar -xvf "{{.soft.home}}"/jdk-8u301-linux-x64.tar.gz 
+            ln -sf "{{.soft.home}}"/jdk1.8.0_301/bin/java /usr/local/bin/java
+            ln -sf "{{.soft.home}}"/jdk1.8.0_301/bin/javac /usr/local/bin/javac
+            JAVA="{{.soft.home}}"/jdk1.8.0_301
+            echo -e "JAVA_HOME=$JAVA\nJRE_HOME=\$JAVA_HOME/jre\nexport JAVA_HOME JRE_HOME\nPATH=\$PATH:\$JAVA_HOME/bin:\$JRE_HOME/bin\nCLASSPATH=\$CLASSPATH:.:\$JAVA_HOME/lib:\$JRE_HOME/lib\nexport PATH CLASSPATH" | sudo tee -a  /etc/profile
+            source /etc/profile

@@ -1,0 +1,40 @@
+plays:
+  - name: 安装kafka
+    hosts: app
+    tasks:
+      - name: 创建soft目录
+        tags: 
+          - soft
+          - home
+        shell: |
+          sudo mkdir -p "{{.soft.home}}"
+          sudo chown -R app:app "{{.soft.home}}"   
+      - name: 上传kafka安装文件
+        tags: kafka
+        upload:
+          src: soft/kafka_2.13-3.0.0.tgz
+          dest: "{{.soft.home}}"
+      - name: 安装kafka
+        tags:
+          - kafka
+          - profile
+        shell: |
+            cd "{{.soft.home}}"
+            tar -zxf kafka_2.13-3.0.0.tgz
+      - name: 上传kafka服务脚本
+        tags:
+          - kafka
+          - service
+        template:
+          src: service/kafka.service
+          dest: /etc/systemd/system/kafka.service               
+      - name: kafka自启动
+        tags:
+          - kafka
+          - service
+        shell: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable kafka
+          sudo systemctl start kafka
+          sudo firewall-cmd --permanent --add-port=9092/tcp --zone=public
+          sudo firewall-cmd --reload            

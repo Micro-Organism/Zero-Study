@@ -1,0 +1,45 @@
+plays:
+  - name: 安装model-fep
+    hosts: app
+    tasks:
+      - name: 创建app目录
+        tags: app
+        shell: |
+          sudo mkdir -p "{{.app.home}}"
+          sudo chown -R app:app "{{.app.home}}"    
+      - name: 创建日志目录
+        tags: log
+        shell: |
+          sudo mkdir -p "{{.log.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 更新model-fep
+        tags: model-fep
+        upload:
+          src: app/model-fep
+          dest: "{{.app.home}}/model-fep"
+      - name: 更新model-fep配置文件
+        tags:
+          - model-fep
+          - conf
+        template:
+          src: app/model-fep/application.yml
+          dest: "{{.app.home}}/model-fep/application.yml"          
+      - name: 上传model-fep服务脚本
+        tags:
+          - model-fep
+          - service
+        template:
+          src: service/model-fep.service
+          dest: /etc/systemd/system/model-fep.service
+      - name: 修改目录权限
+        tags: auth
+        shell: |
+          sudo chown -R app:app "{{.app.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 重启service
+        tags: service
+        shell: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable model-fep
+          sudo systemctl restart model-fep
+          sudo firewall-cmd --permanent --add-port="{{.model_fep.port}}"/tcp --zone=public

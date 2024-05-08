@@ -1,0 +1,17 @@
+[Unit]
+Description=redis server
+#Documentation=none
+After=network.target
+
+[Service]
+User=root
+Group=root
+ExecStart={{.soft.home}}/redis-6.2.6/src/redis-server {{.soft.home}}/redis-6.2.6/redis.conf
+ExecStop=/bin/kill -9 $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+KillMode=control-group
+
+[Install]
+Alias=redis.service
+WantedBy=multi-user.target

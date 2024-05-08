@@ -1,0 +1,4 @@
+soft:
+  home: /opt/soft
+# 证书域名
+domain: default  

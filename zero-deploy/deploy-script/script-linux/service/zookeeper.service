@@ -1,0 +1,17 @@
+[Unit]
+Description=zookeeper server
+After=network.target
+
+[Service]
+Type=forking
+Environment="SERVER_HOME={{.soft.home}}/apache-zookeeper-3.8.1-bin"
+ExecStart=/bin/sh ${SERVER_HOME}/bin/zkServer.sh start
+ExecStop=/bin/sh ${SERVER_HOME}/bin/zkServer.sh stop
+ExecReload=/bin/sh ${SERVER_HOME}/bin/zkServer.sh restart
+Restart=always
+RestartSec=10
+TimeoutSec=360
+
+[Install]
+Alias=zookeeper.service
+WantedBy=multi-user.target

@@ -1,0 +1,17 @@
+[Unit]
+Description=elastic-job server
+After=network.target
+
+[Service]
+User=app
+Group=app
+Environment="SERVER_HOME={{.app.home}}/elastic-job-lite-console-2.1.5"
+ExecStart=/bin/sh ${SERVER_HOME}/bin/start.sh
+ExecStop=/bin/kill -9 $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+KillMode=control-group
+
+[Install]
+Alias=elastic-job.service
+WantedBy=multi-user.target

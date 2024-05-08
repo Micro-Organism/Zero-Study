@@ -1,0 +1,13 @@
+[Unit]
+Description=node server
+
+[Service]
+User=app
+Group=app
+Environment=NODE_PATH=/opt/lib/node_modules
+ExecStart=/usr/local/bin/node {{.app.home}}/node-server/index.js
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+

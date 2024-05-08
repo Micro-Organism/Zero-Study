@@ -1,0 +1,45 @@
+plays:
+  - name: 安装business-energy
+    hosts: app
+    tasks:
+      - name: 创建app目录
+        tags: app
+        shell: |
+          sudo mkdir -p "{{.app.home}}"/app
+          sudo chown -R app:app "{{.app.home}}"/app    
+      - name: 创建日志目录
+        tags: log
+        shell: |
+          sudo mkdir -p "{{.log.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 更新business-energy
+        tags: business-energy
+        upload:
+          src: app/business-energy
+          dest: "{{.app.home}}/business-energy"
+      - name: 更新business-energy配置
+        tags:
+          - business-energy
+          - conf
+        template:
+          src: app/business-energy/bootstrap.yml
+          dest: "{{.app.home}}/business-energy/bootstrap.yml"              
+      - name: 上传business-energy服务脚本
+        tags:
+          - business-energy
+          - service
+        template:
+          src: service/business-energy.service
+          dest: /etc/systemd/system/business-energy.service
+      - name: 修改目录权限
+        tags: auth
+        shell: |
+          sudo chown -R app:app "{{.app.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 重启service
+        tags: service
+        shell: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable business-energy
+          sudo systemctl restart business-energy
+          sudo firewall-cmd --permanent --add-port="{{.business_energy.port}}"/tcp --zone=public

@@ -1,0 +1,13 @@
+[Unit]
+Description=business-psis server
+After=network.target
+
+[Service]
+Environment="APP_HOME={{.app.home}}/business-psis"
+ExecStart=/usr/local/bin/java -jar ${APP_HOME}/business-psis.jar --spring.config.location=file:${APP_HOME}/bootstrap.yml
+ExecStop=/bin/kill -9 $MAINPID
+Restart=on-failure
+
+[Install]
+Alias=psis.service
+WantedBy=multi-user.target

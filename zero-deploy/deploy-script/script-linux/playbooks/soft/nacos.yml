@@ -1,0 +1,51 @@
+plays:
+  - name: 安装Nacos
+    hosts: app
+    tasks:
+      - name: 创建app目录
+        tags: app
+        shell: |
+          sudo mkdir -p "{{.app.home}}"
+          sudo chown -R app:app "{{.app.home}}"    
+      - name: 创建日志目录
+        tags: log
+        shell: |
+          sudo mkdir -p "{{.log.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 更新nacos
+        tags: nacos
+        upload:
+          src: soft/nacos.tar.gz
+          dest: /tmp/
+      - name: 更新nacos配置文件
+        tags:
+          - nacos
+          - conf
+        shell: |
+          cp /tmp/nacos.tar.gz "{{.app.home}}"
+          cd "{{.app.home}}"
+          tar -zxf nacos.tar.gz
+          sed -i 's#export MODE="cluster"#export MODE="standalone"#g' "{{.app.home}}"/nacos/bin/startup.sh
+          sed -i 's#^db.url.0=jdbc:postgresql://127.0.0.1:5432#db.url.0=jdbc:postgresql://{{.pgsql.host}}:{{.pgsql.port}}#g' "{{.app.home}}"/nacos/conf/application.properties
+          sed -i 's#^db.user.0=smartsys#db.user.0={{.pgsql.user}}#g' "{{.app.home}}"/nacos/conf/application.properties
+          sed -i 's#^db.password.0=sf_zhjkb#db.password.0={{.pgsql.passwd}}#g' "{{.app.home}}"/nacos/bin/startup.sh
+          chmod +x "{{.app.home}}"/nacos/bin/*.sh
+      - name: 上传nacos服务脚本
+        tags:
+          - nacos
+          - service
+        template:
+          src: service/nacos.service
+          dest: /etc/systemd/system/nacos.service
+      - name: 修改目录权限
+        tags: auth
+        shell: |
+          sudo chown -R app:app "{{.app.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 重启service
+        tags: service
+        shell: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable nacos
+          sudo systemctl restart nacos
+          sudo firewall-cmd --permanent --add-port="{{.nacos.port}}"/tcp --zone=public

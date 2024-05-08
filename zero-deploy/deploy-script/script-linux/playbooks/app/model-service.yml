@@ -1,0 +1,45 @@
+plays:
+  - name: 安装model-service
+    hosts: app
+    tasks:
+      - name: 创建app目录
+        tags: app
+        shell: |
+          sudo mkdir -p "{{.app.home}}"
+          sudo chown -R app:app "{{.app.home}}"    
+      - name: 创建日志目录
+        tags: log
+        shell: |
+          sudo mkdir -p "{{.log.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 更新model-service
+        tags: model-service
+        upload:
+          src: app/model-service
+          dest: "{{.app.home}}/model-service"
+      - name: 更新model-service配置文件
+        tags:
+          - model-service
+          - conf
+        template:
+          src: app/model-service/bootstrap.yml
+          dest: "{{.app.home}}/model-service/bootstrap.yml"          
+      - name: 上传model-service服务脚本
+        tags:
+          - model-service
+          - service
+        template:
+          src: service/model-service.service
+          dest: /etc/systemd/system/model-service.service
+      - name: 修改目录权限
+        tags: auth
+        shell: |
+          sudo chown -R app:app "{{.app.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 重启service
+        tags: service
+        shell: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable model-service
+          sudo systemctl restart model-service
+          sudo firewall-cmd --permanent --add-port="{{.model_service.port}}"/tcp --zone=public

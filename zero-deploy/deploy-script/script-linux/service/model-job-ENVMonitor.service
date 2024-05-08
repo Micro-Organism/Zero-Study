@@ -1,0 +1,15 @@
+[Unit]
+Description=model-job-ENVMonitor server
+#Documentation=none
+After=network.target
+
+[Service]
+Environment="SERVER_HOME={{.app.home}}/model-job-ENVMonitor"
+ExecStart=/usr/local/bin/java -jar ${SERVER_HOME}/model-job-ENVMonitor.jar --spring.config.location=file:${SERVER_HOME}/application.yml
+ExecStop=/bin/kill -9 $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=model-job-ENVMonitor.service
+

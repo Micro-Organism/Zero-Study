@@ -1,0 +1,14 @@
+[Unit]
+Description=ms-gateway server
+#Documentation=none
+After=network.target
+
+[Service]
+Environment="SERVER_HOME={{.app.home}}/ms-gateway"
+ExecStart=/usr/local/bin/java -jar ${SERVER_HOME}/ms-gateway.jar --spring.config.location=file:${SERVER_HOME}/bootstrap.yml
+ExecStop=/bin/kill -9 $MAINPID
+Restart=on-failure
+
+[Install]
+Alias=ms-gateway.service
+WantedBy=multi-user.target

@@ -1,0 +1,47 @@
+plays:
+  - name: 安装minio
+    hosts: db
+    tasks:
+      - name: 创建soft目录
+        tags: 
+          - soft
+          - home
+        shell: |
+          sudo mkdir -p "{{.soft.home}}"
+          sudo chown -R app:app "{{.soft.home}}"   
+      - name: 上传minio安装文件
+        tags: minio
+        upload:
+          src: soft/minio-20230131022419.0.0.x86_64.rpm
+          dest: "{{.soft.home}}"
+      - name: 安装minio
+        tags:
+          - minio
+          - install
+        shell: |
+          sudo rpm -ivh "{{.soft.home}}"/minio-20230131022419.0.0.x86_64.rpm --replacepkgs
+      - name: 上传minio 配置文件
+        tags:
+          - minio
+          - service
+        template:
+          src: soft/minio.conf
+          dest: "{{.soft.home}}/minio.conf"
+      - name: 上传minio服务脚本
+        tags:
+          - minio
+          - service
+        template:
+          src: service/minio.service
+          dest: /etc/systemd/system/minio.service          
+      - name: minio 自启动
+        tags:
+          - minio
+          - service
+        shell: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable minio
+          sudo systemctl start minio
+          sudo firewall-cmd --permanent --add-port=9000/tcp --zone=public
+          sudo firewall-cmd --permanent --add-port=9001/tcp --zone=public          
+          sudo firewall-cmd --reload              

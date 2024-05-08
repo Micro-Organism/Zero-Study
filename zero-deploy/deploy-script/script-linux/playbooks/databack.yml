@@ -1,0 +1,56 @@
+plays:
+  - name: 数据库数据还原
+    hosts: db
+    tasks:  
+      - name: 上传备份数据文件
+        tags:
+          - pgsql
+          - restore
+          - newdb,nacos,system
+        upload:
+          src: soft/dbfile
+          dest: "{{.soft.home}}"    
+      - name: 还原数据库 nacos
+        tags:
+          - pgsql
+          - restore
+          - nacos
+        shell: |
+          /usr/local/pgsql/bin/psql -U postgres -c "create database nacos with owner=postgres template=template0 encoding='utf8';"
+          /usr/local/pgsql/bin/psql -U postgres -d nacos -c "create schema nacos;"
+          /usr/local/pgsql/bin/psql -U postgres -d nacos -f "{{.soft.home}}"/nacos.sql  
+      - name: 还原数据库 newdb
+        tags:
+          - pgsql
+          - restore
+          - newdb
+        shell: |
+          /usr/local/pgsql/bin/psql -U postgres -c "create database newdb with owner=postgres template=template0 encoding='utf8';"
+          /usr/local/pgsql/bin/psql -U postgres -d newdb -c "create schema model; create schema psis;"
+          /usr/local/pgsql/bin/psql -U postgres "dbname=newdb options=--search_path=model" -f "{{.soft.home}}"/model.sql
+          /usr/local/pgsql/bin/psql -U postgres "dbname=newdb options=--search_path=model" -f "{{.soft.home}}"/model_data.sql
+          /usr/local/pgsql/bin/psql -U postgres "dbname=newdb options=--search_path=psis" -f "{{.soft.home}}"/newdb-psis.sql
+      - name: 还原数据库 system
+        tags:
+          - pgsql
+          - restore
+          - system
+        shell: |
+          /usr/local/pgsql/bin/psql -U postgres -c "create database system with owner=postgres template=template0 encoding='utf8';"
+          /usr/local/pgsql/bin/psql -U postgres -d system -f "{{.soft.home}}"/system.sql         
+      - name: 创建数据库用户smartsys
+        tags:
+          - pgsql
+          - user
+          - smartsys
+        shell: |
+          /usr/local/pgsql/bin/psql -U postgres -c "CREATE USER {{.pgsql.user}} WITH PASSWORD '{{.pgsql.passwd}}';"
+          /usr/local/pgsql/bin/psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE newdb TO {{.pgsql.user}};"
+          /usr/local/pgsql/bin/psql -U postgres -d newdb -c "GRANT ALL PRIVILEGES ON all tables in schema public TO {{.pgsql.user}};"
+          /usr/local/pgsql/bin/psql -U postgres -d newdb -c "GRANT ALL PRIVILEGES ON all tables in schema model TO {{.pgsql.user}};"
+          /usr/local/pgsql/bin/psql -U postgres -d newdb -c "GRANT ALL PRIVILEGES ON all tables in schema psis TO {{.pgsql.user}};"
+          /usr/local/pgsql/bin/psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE system TO {{.pgsql.user}};"
+          /usr/local/pgsql/bin/psql -U postgres -d system -c "GRANT ALL PRIVILEGES ON all tables in schema public TO {{.pgsql.user}};"
+          /usr/local/pgsql/bin/psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE nacos TO {{.pgsql.user}};"
+          /usr/local/pgsql/bin/psql -U postgres -d nacos -c "GRANT ALL PRIVILEGES ON all tables in schema public TO {{.pgsql.user}};"
+          

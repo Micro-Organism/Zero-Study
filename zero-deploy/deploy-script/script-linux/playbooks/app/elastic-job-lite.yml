@@ -1,0 +1,46 @@
+plays:
+  - name: 安装elastic-job-lite
+    hosts: app
+    tasks:
+      - name: 创建app目录
+        tags: app
+        shell: |
+          sudo mkdir -p "{{.app.home}}"
+          sudo chown -R app:app "{{.app.home}}"    
+      - name: 创建日志目录
+        tags: log
+        shell: |
+          sudo mkdir -p "{{.log.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 更新elastic-job-lite
+        tags: elastic-job-lite
+        upload:
+          src: soft/elastic-job-lite.tar.gz
+          dest: /tmp/
+      - name: 安装elastic-job-lite
+        tags:
+          - elastic-job-lite
+          - conf
+        shell: |
+          cp /tmp/elastic-job-lite.tar.gz "{{.app.home}}"
+          cd "{{.app.home}}"
+          tar -zxf elastic-job-lite.tar.gz          
+      - name: 上传elastic-job-lite服务脚本
+        tags:
+          - elastic-job-lite
+          - service
+        template:
+          src: service/elastic-job-lite.service
+          dest: /etc/systemd/system/elastic-job-lite.service
+      - name: 修改目录权限
+        tags: auth
+        shell: |
+          sudo chown -R app:app "{{.app.home}}"
+          sudo chown -R app:app "{{.log.home}}"
+      - name: 重启service
+        tags: service
+        shell: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable nacos
+          sudo systemctl restart nacos
+          sudo firewall-cmd --permanent --add-port="{{.elastic_job_lite.port}}"/tcp --zone=public          
